@@ -17,8 +17,14 @@ RDF-2019 Cloud demonstration: [Link](http://route.ucsd.edu:8080/).
 Getting Started
 ---
 
+### Pre-requisite
+
+We have tested RDF-2019 on CentOS 7. You need to install the basic development packages, and `libtcl8.5`.
+
+### Running Test
+
 ```
-# Set-up the OpenROAD tools
+# Set up the OpenROAD tools
 cd bin/openroad
 ./install.sh
 cd ../../run
