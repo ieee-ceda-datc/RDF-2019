@@ -17,15 +17,21 @@ RDF-2019 Cloud demonstration: [Link](http://route.ucsd.edu:8080/).
 Getting Started
 ---
 
-You can run it by:
 ```
+# Set-up the OpenROAD tools
 cd bin/openroad
 ./install.sh
 cd ../../run
+
+# Setup the workspace; you need Python 3
 python ../src/rdf.py --config test.yml --test
+
+# If you set the `--test` flag, the workspace is named `rdf.yymmdd.HHMMSS`
+# Go to the workspace and run it
 cd rdf.yymmdd.HHMMSS
 ./run.sh
 ```
+
 
 Configuring RDF Flow
 ---
