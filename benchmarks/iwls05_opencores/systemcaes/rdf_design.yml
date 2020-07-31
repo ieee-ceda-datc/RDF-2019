@@ -1,0 +1,12 @@
+name: aes
+clock_port: clk
+
+verilog:
+    - aes.v
+    - byte_mixcolum.v
+    - keysched.v
+    - mixcolum.v
+    - sbox.v
+    - subbytes.v
+    - timescale.v
+    - word_mixcolum.v

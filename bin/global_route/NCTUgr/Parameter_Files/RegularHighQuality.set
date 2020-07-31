@@ -1,0 +1,31 @@
+#NCTU-GR 2.0 is designed by Wen-Hao Liu. Last updated 2013/04/30
+#All values in this file must be integer except for Pin_Blockage_Factor and Avoiding_Blockage_Factor
+Via_Cost = 1					# It must be >=1
+Wirelength_Optimization_Level = 2000 # It must be set between 1 and 2000. The wirelength of routing result is shorter as this value is larger.
+Output_Routing_Result = Yes # Yes or No
+Output_Overflow_Information = No # Yes or No
+Pin_Blockage_Factor = 0 # It must be >=0.0 for ICCAD contest, 0.05
+
+#Placement parameter
+Placement_Iteration = 2
+Rounds_Per_Iteration = 4
+Local_Detailed_Placement = 4
+Avoiding_Blockage_Factor = 3.5 # It must be >=1.0
+Blockage_Expanding = 0 # It must be >=1.0
+
+# The routing iteration of each stage
+Pattern_Routing_Iteration = 2		# It must be >=1
+Monotonic_Routing_Iteration = 2	# It must be >=0
+Maze_Routing_Iteration = 260		# If it is set to -1, the maze routing stage finishes when overflows = 0
+Maze_Routing_Timeout = -1 		# If it is set to -1, the maze routing stage finishes when overflows = 0 (Unit is second)
+Post_Routing_Iteration = 1		# It must be >=0. If the inputed benchmark is hard-to-route, it can be set larger than 2.
+Layer_Assignment_Algorithm = 3 	# 1: greedy LA  2: dynamic-programming-based LA 3: negotiation-based LA
+3D_Optimization_Iteration = 0		# It must be >=0
+
+####### Following utilities will be provided in future ######
+# Light Mode = Yes # Yes or No
+# Layer Directives = No
+# Scenic Control = No
+# Overflow Elimination Iteration = 0	# It must be >=0, If the inputed benchmark is hard-to-route, it can be set larger than 4.
+# Thread number on Multi-Core Platform = 1
+# Acceleration using GPU = No 

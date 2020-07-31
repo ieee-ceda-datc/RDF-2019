@@ -1,0 +1,6 @@
+name: simple_spi_top
+clock_port: clk_i
+
+verilog:
+    - fifo4.v
+    - simple_spi_top.v

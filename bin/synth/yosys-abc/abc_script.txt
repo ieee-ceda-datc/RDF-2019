@@ -1,0 +1,25 @@
+map
+
+source ../abc.rc
+
+unmap
+resyn2rs
+map
+cleanup
+buffer -N 16 -v
+
+echo "***print_status"
+print_status
+
+echo "***print_stats"
+print_stats
+
+echo "***print_latch"
+print_latch;
+
+echo "***print_gates"
+print_gates;
+
+echo "***print_fanio"
+print_fanio
+

@@ -1,0 +1,62 @@
+# Process node
+PROCESS: 45
+
+LIBRARY_NAME: Nangate45
+LIBERTY: nangate45.lib
+LEF: nangate45.lef
+
+# FIXME: Used in MCHL-T
+TECHLEF: nangate45.tech.lef
+CELLLEF: nangate45.cell.lef
+
+# Set the TIEHI/TIELO cells
+# These are used in yosys synthesis to avoid logical 1/0's in the netlist
+TIEHI_CELL_AND_PORT: ["LOGIC1_X1", "Z"]
+TIELO_CELL_AND_PORT: ["LOGIC0_X1", "Z"]
+
+# Placement site for core cells
+# This can be found in the technology lef
+PLACE_SITE: FreePDK45_38x28_10R_NP_162NW_34O
+
+# Track information for generating DEF tracks
+TRACKS_INFO_FILE: tracks.info
+
+# Wndcap and Welltie cells
+# Use fillers if kit doesn't have them
+ENDCAP_CELL: FILLCELL_X1
+WELLTIE_CELL: FILLCELL_X1
+WELLTTAP_RULE: 120
+
+# TritonCTS options
+CTS_DUMMY_CELL: BUF_X1
+CTS_BUF_CELL: BUF_X4
+CTS_TECH_DIR: tritonCTS
+
+# RC information for the placer
+CAP_PER_MICRON: 0.235146e-12
+RES_PER_MICRON: 1.59
+
+# RC information for the sizer
+CAP_PER_METER: 0.36e-9
+RES_PER_METER: 0.1233e+6
+RESIZER_BUF_CELL: BUF_X4
+
+# Magic technology file
+MAGIC_TECH_FILE: magic.tech
+
+# Dont use cells to ease congestion
+# Specify at least one filler cell if none
+DONT_USE_CELLS: FILLCELL_X1
+
+# FIXME: Used in ABC logic synthesis
+DEFAULT_FLOP: DFF_X1
+DEFAULT_FLOP_DPIN: D
+DEFAULT_FLOP_QPIN: Q
+DEFAULT_FLOP_CKPIN: CK
+
+# FIXME: Used in TritonFP
+VERILOG2DEF_DBU: 2000
+IO_PLACER_VMETAL: 5
+IO_PLACER_HMETAL: 6
+CORE_SPACE: 14 
+

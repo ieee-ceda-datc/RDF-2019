@@ -1,0 +1,6 @@
+name: pcm_slv_top
+clock_port: clk
+
+verilog:
+    - pcm_slv_top.v
+    - timescale.v

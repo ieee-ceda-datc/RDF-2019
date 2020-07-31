@@ -1,0 +1,8 @@
+name: sasc_top
+clock_port: clk
+
+verilog:
+    - sasc_brg.v
+    - sasc_fifo4.v
+    - sasc_top.v
+    - timescale.v

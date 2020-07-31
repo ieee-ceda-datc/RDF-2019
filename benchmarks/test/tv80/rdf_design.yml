@@ -1,0 +1,9 @@
+name:        tv80s
+clock_port:  clk
+
+verilog:     
+    - tv80_alu.v
+    - tv80_core.v
+    - tv80_mcode.v
+    - tv80_reg.v
+    - tv80s.v

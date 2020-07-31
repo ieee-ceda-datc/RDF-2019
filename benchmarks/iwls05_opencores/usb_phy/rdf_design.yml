@@ -1,0 +1,8 @@
+name: usb_phy
+clock_port: clk
+
+verilog:
+    - timescale.v
+    - usb_phy.v
+    - usb_rx_phy.v
+    - usb_tx_phy.v

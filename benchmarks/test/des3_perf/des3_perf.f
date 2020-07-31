@@ -1,0 +1,13 @@
++incdir+/afs/apd.pok.ibm.com/func/vlsi/eclipz/l14/usr/jungj/sndd1/vols/data/benchmarks/opencores/des3_perf
+sbox7.v
+sbox3.v
+crp.v
+des3.v
+sbox6.v
+key_sel.v
+sbox2.v
+des.v
+sbox5.v
+sbox1.v
+sbox8.v
+sbox4.v

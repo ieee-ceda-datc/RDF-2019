@@ -1,0 +1,9 @@
+name: spi_top
+clock_port: wb_clk_i
+
+verilog:
+    - spi_clgen.v
+    - spi_defines.v
+    - spi_shift.v
+    - spi_top.v
+    - timescale.v

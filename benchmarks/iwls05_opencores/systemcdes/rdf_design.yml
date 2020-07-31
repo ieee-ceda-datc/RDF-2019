@@ -1,0 +1,15 @@
+name: des
+clock_port: clk
+
+verilog:
+    - des.v
+    - desround.v
+    - key_gen.v
+    - s1.v
+    - s2.v
+    - s3.v
+    - s4.v
+    - s5.v
+    - s6.v
+    - s7.v
+    - s8.v

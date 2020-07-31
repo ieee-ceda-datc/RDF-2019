@@ -1,0 +1,7005 @@
+VERSION 5.8 ;
+BUSBITCHARS "[]" ;
+DIVIDERCHAR "/" ;
+CLEARANCEMEASURE EUCLIDEAN ;
+
+UNITS
+  DATABASE MICRONS 4000 ;
+END UNITS
+MANUFACTURINGGRID 0.004 ;
+
+PROPERTYDEFINITIONS
+  LAYER LEF58_TYPE STRING ;
+  LAYER LEF58_PITCH STRING ;
+  LAYER LEF58_GAP STRING ;
+  LAYER LEF58_EOLKEEPOUT STRING ;
+  LAYER LEF58_SPACING STRING ;
+  LAYER LEF58_CORNERSPACING STRING ;
+  LAYER LEF58_WIDTHTABLE STRING ;
+  LAYER LEF58_CUTCLASS STRING ;
+  LAYER LEF58_SPACINGTABLE STRING ;
+  LAYER LEF58_ENCLOSURE STRING ;
+  LAYER LEF58_RIGHTWAYONGRIDONLY STRING ;
+  LAYER LEF58_RECTONLY STRING ;
+END PROPERTYDEFINITIONS
+
+LAYER OVERLAP
+  TYPE OVERLAP ;
+END OVERLAP
+
+LAYER nwell
+  TYPE MASTERSLICE ;
+  PROPERTY LEF58_TYPE "TYPE NWELL ;" ;
+END nwell
+
+LAYER pwell
+  TYPE MASTERSLICE ;
+  PROPERTY LEF58_TYPE "TYPE PWELL ;" ;
+END pwell
+
+LAYER Gate
+  TYPE MASTERSLICE ;
+END Gate
+
+LAYER Active
+  TYPE MASTERSLICE ;
+END Active
+
+LAYER V0
+  TYPE CUT ;
+  SPACING 0.072 ;
+  WIDTH 0.072 ;
+END V0
+
+LAYER M1
+  TYPE ROUTING ;
+  DIRECTION VERTICAL ;
+  PITCH 0.144 ;
+  WIDTH 0.072 ;
+  SPACING 0.072 ;
+  AREA 0.010656 ;                   # Min Area # This should ideally be 16x not 4x as each dimension is scaled up by 16
+                                    # we only allow landing on pins (set in router) so area should not matter
+  SPACING 0.072 RANGE 0.144 4.000 ; # This rule is redundant with the SPACING rule
+
+  PROPERTY LEF58_EOLKEEPOUT "EOLKEEPOUT 0.073 EXTENSION 0 0 0.124 ;" ; #  Tip to Tip Spacing
+
+  PROPERTY LEF58_CORNERSPACING "CORNERSPACING CONVEXCORNER CORNERONLY 0.040 WIDTH 0.072 SPACING 0.072 ;" ; 
+OFFSET 0.0 ;
+
+END M1
+
+LAYER V1
+  TYPE CUT ;
+  SPACING 0.072 ;     # unlike generate, this is really spacing, not center to center.
+  WIDTH 0.072 ;
+END V1
+
+LAYER M2
+  TYPE ROUTING ;
+  DIRECTION HORIZONTAL ;
+  WIDTH 0.072 ; # Min Width
+  SPACING 0.072 ; # Min Spacing
+
+  OFFSET -1.080 ;
+
+  #  MINSIZE is set so that the minimum lenght of a segment is 36nm. At the proper rule size of
+  #  31nm, the lines can't be minimum space. This causes DRCs (like crazy). Same for M3
+  #  MINSIZE 0.112 0.072 ; 
+  # area is adjusted to match this (Nanoroute requires both AREA and MINSIZE)
+
+  AREA 0.010656 ;
+  MINSIZE 0.148 0.072 ; 
+
+  PITCH 0.180 0.144 ;
+
+  # this enforces the correct routing tracks on M2 with wide M2 power rails
+
+  PROPERTY LEF58_PITCH "
+   PITCH 0.144 FIRSTLASTPITCH 0.180 
+   ;
+  " ;
+
+  # this checks for distance in any direction so is not correct
+  # 0.070 is to avoid conflicts with the adjacent lines. This should be caught by CORNERSPACING below
+  #   SPACING 0.124 ENDOFLINE 0.1 WITHIN 0.070 ;
+
+  PROPERTY LEF58_SPACING 
+    " SPACING 0.072 ENDOFLINE 0.1 WITHIN 0.08 ENDTOEND 0.124 
+      PARALLELEDGE 0.100 WITHIN 0.08 ; " ;	   
+
+  PROPERTY LEF58_EOLKEEPOUT "
+    EOLKEEPOUT 0.1 EXTENSION 0.0 0.05 0.124 CORNERONLY ;
+  " ;
+
+  PROPERTY LEF58_CORNERSPACING "
+     CORNERSPACING CONVEXCORNER WIDTH 0.000 SPACING 0.080 ;
+  " ; # CORNER to CORNER SPACING Rule
+
+  # Originally no width table for M2 since it is the follow rails. 
+  # They can be 1x or 2x (2x causes DRCs on SAV V1). However, this seems to allow a double width M2
+  # on vias, which violates. Thus, this is added. Note that wide power follow rails will violate.
+
+  PROPERTY LEF58_WIDTHTABLE "
+      WIDTHTABLE 0.072 0.36 0.648 0.936 1.224 1.512 ; 
+  " ;
+
+  PROPERTY LEF58_RIGHTWAYONGRIDONLY "
+      RIGHTWAYONGRIDONLY ;
+  " ;
+
+  PROPERTY LEF58_RECTONLY "
+      RECTONLY ;
+  " ;
+
+END M2
+
+LAYER V2
+  TYPE CUT ;
+  SPACING 0.072 ;
+  WIDTH 0.072 ;
+END V2
+
+LAYER M3
+  TYPE ROUTING ;
+  DIRECTION VERTICAL ;
+  PITCH 0.144 ;
+  OFFSET 0.0 ;
+  WIDTH 0.072 ; # Min Width
+  SPACING 0.072 ; # Min Spacing
+
+  #  MINSIZE is set so that the minimum lenght of a segment is 36nm. At the proper rule size of
+  #  31nm, the lines can't be minimum space. This causes DRCs (like crazy). Same for M2
+  #  MINSIZE 0.112 0.072 ; 
+  # area is adjusted to match this (Nanoroute requires both AREA and MINSIZE)
+
+  AREA 0.010656 ;
+  MINSIZE 0.148 0.072 ; 
+
+  PROPERTY LEF58_SPACING 
+    " SPACING 0.072 ENDOFLINE 0.1 WITHIN 0.05 ENDTOEND 0.124  
+      PARALLELEDGE 0.100 WITHIN 0.08 ; " ;	  
+
+  PROPERTY LEF58_EOLKEEPOUT "
+    EOLKEEPOUT 0.1 EXTENSION 0.0 0.05 0.124 CORNERONLY ;
+  " ;
+
+  PROPERTY LEF58_CORNERSPACING "
+   CORNERSPACING CONVEXCORNER WIDTH 0.000 SPACING 0.080 
+   ;
+  " ; # CORNER to CORNER SPACING Rule
+
+  # to make the special route widths integer values of the tracks, i.e., 1, 5, 9, 13... min widths
+  # the widths should be calculated in the APR tool, since viaGen does not seem to respect these
+
+  PROPERTY LEF58_WIDTHTABLE
+      " WIDTHTABLE 0.072 0.36 0.648 0.936 1.224 1.512 ; " ;
+
+  PROPERTY LEF58_RIGHTWAYONGRIDONLY "
+      RIGHTWAYONGRIDONLY ;
+  " ;
+
+  PROPERTY LEF58_RECTONLY "
+      RECTONLY ;
+  " ;
+
+END M3
+
+LAYER V3
+  TYPE CUT ;
+#  SPACING 0.072 ;
+#  WIDTH 0.072 ;
+
+  # different format to allow long vias for SAV power connections
+
+  PROPERTY LEF58_CUTCLASS "  
+    CUTCLASS V3       WIDTH 0.072 LENGTH 0.096 CUTS 1  ; 
+    CUTCLASS V3_0p480 WIDTH 0.072 LENGTH 0.480 CUTS 4  ;
+    CUTCLASS V3_0p864 WIDTH 0.072 LENGTH 0.864 CUTS 8  ;
+  " ;
+
+  PROPERTY LEF58_SPACINGTABLE "
+    SPACINGTABLE
+      DEFAULT 0.136
+      CUTCLASS   V3 V3_0p480 V3_0p864
+        V3       -  -        -        -  - -
+        V3_0p480 -  -        -        -  - -
+        V3_0p864 -  -        -        -  - -
+    ;
+  " ;
+
+#   ENCLOSURE CUTCLASS V3 END 0.02 SIDE 0.0 ;
+  # covered below? 
+  # ENCLOSURE CUTCLASS V3       END 0.02 SIDE 0.0 ;
+
+  PROPERTY LEF58_ENCLOSURE "
+    ENCLOSURE CUTCLASS V3 BELOW EOL 0.0 0.020 0.0 ;
+    ENCLOSURE CUTCLASS V3 ABOVE EOL 0.0 0.044 0.0 ;
+    ENCLOSURE CUTCLASS V3_0p480 END 0.0  SIDE 0.0 ;
+    ENCLOSURE CUTCLASS V3_0p864 END 0.0  SIDE 0.0 ;
+  " ;
+
+END V3
+
+LAYER M4
+  TYPE ROUTING ;
+  DIRECTION HORIZONTAL ;
+  PITCH 0.192 ;
+  WIDTH 0.096 ;
+  SPACING 0.096 ;
+
+  OFFSET 0.012 ;
+
+  AREA 0.032 ; 
+
+  PROPERTY LEF58_SPACING "
+    SPACING 0.096 ENDOFLINE 0.1 WITHIN 0.160 ENDTOEND 0.160 ; " ;	  
+
+  PROPERTY LEF58_WIDTHTABLE
+      " WIDTHTABLE 0.096 0.480 0.864 1.248 1.632 ; " ;
+
+  PROPERTY LEF58_CORNERSPACING "
+    CORNERSPACING CONVEXCORNER CORNERONLY 0.192
+      WIDTH 0.000 SPACING 0.160 ;
+  " ;
+
+  PROPERTY LEF58_EOLKEEPOUT "
+    EOLKEEPOUT 0.1 EXTENSION 0.192 0.097 0.192 CORNERONLY ;
+  " ;
+
+  # spacing table is required for the rule that has wide metal requires a 72nm (288 scaled)
+  # spacing between wide and minimum metals 
+
+  SPACINGTABLE
+    PARALLELRUNLENGTH 0.00
+      WIDTH 0.000     0.096
+      WIDTH 0.100     0.288 ;
+
+  PROPERTY LEF58_RIGHTWAYONGRIDONLY "
+      RIGHTWAYONGRIDONLY ;
+  " ;
+
+  PROPERTY LEF58_RECTONLY "
+      RECTONLY ;
+  " ;
+
+END M4
+
+LAYER V4
+  TYPE CUT ;
+
+  # spacing is 4 * 34 = 136
+  # SPACING 0.136 ;
+  # WIDTH 0.072 ;
+  # ENCLOSURE 0.044 0.0 ;
+
+  PROPERTY LEF58_CUTCLASS "  
+    CUTCLASS Vx       WIDTH 0.096 LENGTH 0.096 ; 
+    CUTCLASS Vx_0p480 WIDTH 0.096 LENGTH 0.480 CUTS 4  ;
+    CUTCLASS Vx_0p864 WIDTH 0.096 LENGTH 0.864 CUTS 8  ;
+    CUTCLASS Vx_1p248 WIDTH 0.096 LENGTH 1.248 CUTS 12 ;
+    CUTCLASS Vx_1p632 WIDTH 0.096 LENGTH 1.632 CUTS 16 ;
+  " ;
+
+  PROPERTY LEF58_SPACINGTABLE "
+    SPACINGTABLE
+      DEFAULT 0.136
+      CUTCLASS   Vx Vx_0p480 Vx_0p864 Vx_1p248 Vx_1p632
+        Vx       -  -        -        -        - -  -        -        -        -
+        Vx_0p480 -  -        -        -        - -  -        -        -        -
+	Vx_0p864 -  -        -        -        - -  -        -        -        -
+	Vx_1p248 -  -        -        -        - -  -        -        -        -
+	Vx_1p632 -  -        -        -        - -  -        -        -        -
+    ;
+  " ;
+
+  PROPERTY LEF58_ENCLOSURE "
+    ENCLOSURE CUTCLASS Vx 0.044 0.0 ;
+    ENCLOSURE CUTCLASS Vx EOL   0.0 0.044 0.044 ;
+    ENCLOSURE CUTCLASS Vx_0p480 END 0.00 SIDE 0.0 ;
+    ENCLOSURE CUTCLASS Vx_0p864 END 0.00 SIDE 0.0 ;
+    ENCLOSURE CUTCLASS Vx_1p248 END 0.00 SIDE 0.0 ;
+    ENCLOSURE CUTCLASS Vx_1p632 END 0.00 SIDE 0.0 ;
+  " ;
+
+END V4
+
+LAYER M5
+  TYPE ROUTING ;
+  DIRECTION VERTICAL ;
+  PITCH 0.192 ;
+  WIDTH 0.096 ;
+  SPACING 0.096 ;
+  OFFSET 0.0 ;
+
+  AREA 0.032 ; 
+
+  PROPERTY LEF58_SPACING "
+    SPACING 0.096 ENDOFLINE 0.1 WITHIN 0.160 ENDTOEND 0.160 ; " ;	  
+
+  MINIMUMDENSITY 60 ;
+  MAXIMUMDENSITY 360 ;
+  DENSITYCHECKWINDOW 80 80 ;
+  DENSITYCHECKSTEP 40 ;
+
+  PROPERTY LEF58_WIDTHTABLE
+      " WIDTHTABLE 0.096 0.480 0.864 1.248 1.632 2.016 2.400 2.784 3.168 3.552 3.936 ; " ;
+
+  PROPERTY LEF58_CORNERSPACING "
+    CORNERSPACING CONVEXCORNER CORNERONLY 0.192
+      WIDTH 0.000 SPACING 0.160 ;
+  " ;
+
+  PROPERTY LEF58_EOLKEEPOUT "
+    EOLKEEPOUT 0.1 EXTENSION 0.192 0.097 0.192
+    CORNERONLY ;
+  " ;
+
+  SPACINGTABLE
+    PARALLELRUNLENGTH 0.00
+      WIDTH 0.000     0.096
+      WIDTH 0.100     0.288 ;
+
+  PROPERTY LEF58_RIGHTWAYONGRIDONLY "
+      RIGHTWAYONGRIDONLY ;
+  " ;
+
+  PROPERTY LEF58_RECTONLY "
+      RECTONLY ;
+  " ;
+
+END M5
+
+LAYER V5
+  TYPE CUT ;
+
+  PROPERTY LEF58_CUTCLASS "  
+    CUTCLASS Vx       WIDTH 0.096 LENGTH 0.128 ; 
+    CUTCLASS Vx_0p480 WIDTH 0.096 LENGTH 0.640 CUTS 4  ;
+    CUTCLASS Vx_0p864 WIDTH 0.096 LENGTH 1.152 CUTS 8  ;
+    CUTCLASS Vx_1p248 WIDTH 0.096 LENGTH 1.664 CUTS 12 ;
+    CUTCLASS Vx_1p632 WIDTH 0.096 LENGTH 2.176 CUTS 16 ;
+  " ;
+
+  PROPERTY LEF58_SPACINGTABLE "
+    SPACINGTABLE
+      DEFAULT 0.136
+      CUTCLASS   Vx Vx_0p480 Vx_0p864 Vx_1p248 Vx_1p632
+        Vx       -  -        -        -        - -  -        -        -        -
+        Vx_0p480 -  -        -        -        - -  -        -        -        -
+	Vx_0p864 -  -        -        -        - -  -        -        -        -
+	Vx_1p248 -  -        -        -        - -  -        -        -        -
+	Vx_1p632 -  -        -        -        - -  -        -        -        -
+    ;
+  " ;
+
+  # end refers to the end of the VIA! Thus, since it is rectangular the proper
+  # enclosure is on the side not the end...
+  # ENCLOSURE CUTCLASS Vx END 0.0 SIDE 0.044 ;  But--this refers to top and bottom
+  # actually passing the rule is done by having the correct vias below.
+
+  PROPERTY LEF58_ENCLOSURE "
+  ENCLOSURE CUTCLASS Vx EOL 0.0 0.044 0.044 ;
+  ENCLOSURE CUTCLASS Vx_0p480 END 0.00 SIDE 0.0 ;
+  ENCLOSURE CUTCLASS Vx_0p864 END 0.00 SIDE 0.0 ;
+  ENCLOSURE CUTCLASS Vx_1p248 END 0.00 SIDE 0.0 ;
+  ENCLOSURE CUTCLASS Vx_1p632 END 0.00 SIDE 0.0 ;
+  " ;
+
+#  PROPERTY LEF58_ENCLOSURE "
+#  ENCLOSURE CUTCLASS Vx EOL 0.0 0.044 0.0 ;
+#  " ;
+
+END V5
+
+LAYER M6
+  TYPE ROUTING ;
+  DIRECTION HORIZONTAL ;
+  PITCH 0.256 ;
+  WIDTH 0.128 ;
+  SPACING 0.128 ;
+
+  AREA 0.035 ;   # Areas still need tweaking
+
+  PROPERTY LEF58_SPACING 
+    " SPACING 0.128 ENDOFLINE 0.15 WITHIN 0.160 ENDTOEND 0.160 ; " ;	   
+
+  PROPERTY LEF58_WIDTHTABLE
+      " WIDTHTABLE 0.128 0.640 1.152 1.664 2.176 ; " ;
+
+  PROPERTY LEF58_CORNERSPACING "
+    CORNERSPACING CONVEXCORNER CORNERONLY 0.192
+      WIDTH 0.000 SPACING 0.160 ;
+  " ;
+
+  PROPERTY LEF58_EOLKEEPOUT "
+    EOLKEEPOUT 0.2 EXTENSION 0.192 0.129 0.192 CORNERONLY ;
+  " ;
+
+  SPACINGTABLE
+    PARALLELRUNLENGTH 0.00
+      WIDTH 0.000     0.096
+      WIDTH 0.100     0.288 ;
+
+  PROPERTY LEF58_RIGHTWAYONGRIDONLY "
+      RIGHTWAYONGRIDONLY ;
+  " ;
+
+  PROPERTY LEF58_RECTONLY "
+      RECTONLY ;
+  " ;
+
+END M6
+
+LAYER V6
+  TYPE CUT ;
+
+  PROPERTY LEF58_CUTCLASS "  
+    CUTCLASS Vx       WIDTH 0.128 LENGTH 0.128 ; 
+    CUTCLASS Vx_0p640 WIDTH 0.128 LENGTH 0.640 CUTS 4  ;
+    CUTCLASS Vx_1p152 WIDTH 0.128 LENGTH 1.152 CUTS 8  ;
+    CUTCLASS Vx_1p664 WIDTH 0.128 LENGTH 1.664 CUTS 12 ;
+    CUTCLASS Vx_2p176 WIDTH 0.128 LENGTH 2.176 CUTS 16 ;
+  " ;
+
+  PROPERTY LEF58_SPACINGTABLE "
+    SPACINGTABLE
+      DEFAULT 0.136
+      CUTCLASS   Vx Vx_0p640 Vx_1p152 Vx_1p664 Vx_2p176
+        Vx       -  -        -        -        - -  -        -        -        -
+        Vx_0p640 -  -        -        -        - -  -        -        -        -
+	Vx_1p152 -  -        -        -        - -  -        -        -        -
+	Vx_1p664 -  -        -        -        - -  -        -        -        -
+	Vx_2p176 -  -        -        -        - -  -        -        -        -
+    ;
+  " ;
+
+  PROPERTY LEF58_ENCLOSURE "
+    ENCLOSURE CUTCLASS Vx 0.044  0.0 ;
+    ENCLOSURE CUTCLASS Vx EOL 0.0 0.044 0.044 ;
+    ENCLOSURE CUTCLASS Vx_0p640 END 0.00 SIDE 0.0 ;
+    ENCLOSURE CUTCLASS Vx_1p152 END 0.00 SIDE 0.0 ;
+    ENCLOSURE CUTCLASS Vx_1p664 END 0.00 SIDE 0.0 ;
+    ENCLOSURE CUTCLASS Vx_2p176 END 0.00 SIDE 0.0 ;
+  " ;
+
+END V6
+
+LAYER M7
+  TYPE ROUTING ;
+  DIRECTION VERTICAL ;
+  PITCH 0.256 ;
+  WIDTH 0.128 ;
+  SPACING 0.128 ;
+
+  AREA 0.035 ;   # Areas still need tweaking
+
+  PROPERTY LEF58_SPACING 
+    " SPACING 0.120 ENDOFLINE 0.15 WITHIN 0.160 ENDTOEND 0.160 ; " ;	   
+
+  PROPERTY LEF58_WIDTHTABLE
+      " WIDTHTABLE 0.128 0.640 1.152 1.664 2.176 ; " ;
+  TYPE ROUTING ;
+  DIRECTION VERTICAL ;
+
+  PROPERTY LEF58_CORNERSPACING "
+    CORNERSPACING CONVEXCORNER CORNERONLY 0.300
+      WIDTH 0.000 SPACING 0.160 ;
+  " ;
+
+  PROPERTY LEF58_EOLKEEPOUT "
+    EOLKEEPOUT 0.2 EXTENSION 0.192 0.129 0.192
+    CORNERONLY ;
+  " ;
+
+  SPACINGTABLE
+    PARALLELRUNLENGTH 0.00
+      WIDTH 0.000     0.096
+      WIDTH 0.100     0.288 ;
+
+  PROPERTY LEF58_RIGHTWAYONGRIDONLY "
+      RIGHTWAYONGRIDONLY ;
+  " ;
+
+  PROPERTY LEF58_RECTONLY "
+      RECTONLY ;
+  " ;
+
+END M7
+
+LAYER V7
+  TYPE CUT ;
+  SPACING 0.184 ;
+  WIDTH 0.128 ;
+END V7
+
+LAYER M8
+  TYPE ROUTING ;
+  DIRECTION HORIZONTAL ;
+  PITCH 0.32 0.32 ;
+  WIDTH 0.16 ;
+  AREA 30.08 ;
+
+  SPACINGTABLE
+    PARALLELRUNLENGTH 0 1.599 4.799 7.199 
+    WIDTH 0 0.16 0.16 0.16 0.16 
+    WIDTH 0.239 0.16 0.16 0.16 0.16 
+    WIDTH 0.319 0.16 0.16 0.16 0.16 
+    WIDTH 0.479 0.16 0.16 0.16 0.16 
+    WIDTH 1.999 0.16 0.16 0.16 2 
+    WIDTH 3.999 0.16 0.16 0.16 4 ;
+
+  MINIMUMCUT 2 WIDTH 7.22 WITHIN 6.82 FROMBELOW ;
+  MINIMUMCUT 2 WIDTH 7.22 WITHIN 6.82 FROMABOVE ;
+  MAXWIDTH 8 ;
+  MINSTEP 0.16 STEP ;
+END M8
+
+LAYER V8
+  TYPE CUT ;
+  SPACING 0.228 ;
+  WIDTH 0.16 ;
+END V8
+
+
+LAYER M9
+  TYPE ROUTING ;
+  DIRECTION VERTICAL ;
+  PITCH 0.32 0.32 ;
+  WIDTH 0.16 ;
+  AREA 30.08 ;
+
+  SPACINGTABLE
+    PARALLELRUNLENGTH 0 1.599 4.799 7.199 
+    WIDTH 0 0.16 0.16 0.16 0.16 
+    WIDTH 0.239 0.16 0.16 0.16 0.16 
+    WIDTH 0.319 0.16 0.16 0.16 0.16 
+    WIDTH 0.479 0.16 0.16 0.16 0.16 
+    WIDTH 1.999 0.16 0.16 0.16 2 
+    WIDTH 3.999 0.16 0.16 0.16 4 ;
+
+  MINIMUMCUT 2 WIDTH 7.22 WITHIN 6.82 FROMABOVE ;
+  MINSTEP 0.16 STEP ;
+END M9
+
+LAYER V9
+  TYPE CUT ;
+  SPACING 0.228 ;
+  WIDTH 0.16 ;
+END V9
+
+LAYER Pad
+  TYPE ROUTING ;
+  DIRECTION HORIZONTAL ;
+  PITCH 0.32 0.32 ;
+  WIDTH 0.16 ;
+  SPACINGTABLE
+    PARALLELRUNLENGTH 0 47.999 
+    WIDTH 0 8 8 
+    WIDTH 47.999 8 12 ;
+  MINIMUMCUT 1 WIDTH 0.16 WITHIN 6.82 FROMBELOW ;
+  MINIMUMCUT 1 WIDTH 1.44 WITHIN 6.82 FROMBELOW ;
+  MINIMUMCUT 2 WIDTH 7.22 WITHIN 6.82 FROMBELOW ;
+  MINIMUMDENSITY 80 ;
+  MAXIMUMDENSITY 320 ;
+  DENSITYCHECKWINDOW 400 400 ;
+  DENSITYCHECKSTEP 200 ;
+END Pad
+
+# vias
+
+VIA VIA9Pad Default
+  LAYER M9 ;
+    RECT -0.2 -0.2 0.2 0.2 ;
+  LAYER Pad ;
+    RECT -0.2 -0.2 0.2 0.2 ;
+  LAYER V9 ;
+    RECT -0.2 -0.2 0.2 0.2 ;
+END VIA9Pad
+
+VIA VIA89 Default
+  LAYER M8 ;
+    RECT -0.08 -0.08 0.08 0.08 ;
+  LAYER M9 ;
+    RECT -0.08 -0.08 0.08 0.08 ;
+  LAYER V8 ;
+    RECT -0.08 -0.08 0.08 0.08 ;
+END VIA89
+
+VIA VIA78 Default
+  LAYER M7 ;
+    RECT -0.064 -0.108 0.064 0.108 ;
+  LAYER M8 ;
+    RECT -0.108 -0.064 0.108 0.064 ;
+  LAYER V7 ;
+    RECT -0.064 -0.064 0.064 0.064 ;
+END VIA78
+
+VIA VIA67 Default
+  LAYER M6 ;
+    RECT -0.108 -0.064 0.108 0.064 ;
+  LAYER M7 ;
+    RECT -0.064 -0.108 0.064 0.108 ;
+  LAYER V6 ;
+    RECT -0.064 -0.064 0.064 0.064 ;
+END VIA67
+
+VIA VIA56 Default
+  LAYER M5 ;
+    RECT -0.048 -0.108 0.048 0.108 ;
+  LAYER M6 ;
+    RECT -0.092 -0.064 0.092 0.064 ;
+  LAYER V5 ;
+    RECT -0.048 -0.064 0.048 0.064 ;
+END VIA56
+
+VIA VIA45 Default
+  LAYER M4 ;
+    RECT -0.092 -0.048 0.092 0.048 ;
+  LAYER M5 ;
+    RECT -0.048 -0.092 0.048 0.092 ;
+  LAYER V4 ;
+    RECT -0.048 -0.048 0.048 0.048 ;
+END VIA45
+
+VIA VIA34 Default
+  LAYER M3 ;
+    RECT -0.036 -0.068 0.036 0.068 ;
+  LAYER M4 ;
+    RECT -0.080 -0.048 0.080 0.048 ;
+  LAYER V3 ;
+    RECT -0.036 -0.048 0.036 0.048 ;
+END VIA34
+
+VIA VIA23 Default
+  LAYER M2 ;
+    RECT -0.056 -0.036 0.056 0.036 ;
+  LAYER M3 ;
+    RECT -0.036 -0.056 0.036 0.056 ;
+  LAYER V2 ;
+    RECT -0.036 -0.036 0.036 0.036 ;
+END VIA23
+
+VIA VIA12 Default
+  LAYER M1 ;
+    RECT -0.036 -0.044 0.036 0.044 ;
+  LAYER M2 ;
+    RECT -0.056 -0.036 0.056 0.036 ;
+  LAYER V1 ;
+    RECT -0.036 -0.036 0.036 0.036 ;
+END VIA12
+
+#################################
+### VIARULE GENERATE DEFAULTS ###
+#################################
+
+VIARULE Pad_M9 GENERATE DEFAULT
+  LAYER M9 ;
+    ENCLOSURE 0 0.0 ;
+  LAYER Pad ;
+    ENCLOSURE 0.044 0 ;
+  LAYER V9 ;
+    RECT -0.064 -0.064 0.064 0.064 ;
+    SPACING 0.312 BY 0.312 ;
+END Pad_M9
+
+VIARULE M9_M8 GENERATE DEFAULT
+  LAYER M8 ;
+    ENCLOSURE 0.0 0 ;
+  LAYER M9 ;
+    ENCLOSURE 0 0.08 ;
+  LAYER V8 ;
+    RECT -0.08 -0.08 0.08 0.08 ;
+    SPACING 0.388 BY 0.388 ;
+END M9_M8
+
+VIARULE M8_M7 GENERATE DEFAULT
+  LAYER M7 ;
+    ENCLOSURE 0.0 0.0 ;
+  LAYER M8 ;
+    ENCLOSURE 0.044 0 ;
+  LAYER V7 ;
+    RECT -0.064 -0.064 0.064 0.064 ;
+    SPACING 0.312 BY 0.312 ;
+END M8_M7
+
+VIARULE M7_M6 GENERATE DEFAULT
+  LAYER M6 ;
+    ENCLOSURE 0.044 0 ;
+  LAYER M7 ;
+    ENCLOSURE 0 0.044 ;
+  LAYER V6 ;
+    RECT -0.064 -0.064 0.064 0.064 ;
+    SPACING 0.312 BY 0.312 ;
+END M7_M6
+
+VIARULE M6_M5 GENERATE DEFAULT
+  LAYER M5 ;
+    ENCLOSURE 0.044 0.0 ;
+    WIDTH 0.096 TO 0.096 ;
+  LAYER M6 ;
+    ENCLOSURE 0.044 0 ;
+    WIDTH 0.128 TO 0.128 ;
+  LAYER V5 ;
+    RECT -0.048 -0.064 0.048 0.064 ;
+    SPACING 0.232 BY 1.232 ;    # purposely crazy to avoid dual cut on routing
+END M6_M5
+
+
+# to make the wide vias for power stripes (still SAV)
+
+VIARULE M3_M2widePWR0p936 GENERATE
+  LAYER M2 ;
+    ENCLOSURE 0.0 0.0 ;
+  LAYER M3 ;
+    ENCLOSURE 0.0 0.0 ;
+    WIDTH 0.936 TO 0.936 ;
+  LAYER V2 ;
+    RECT -0.468 -0.036 0.468 0.036 ;
+    SPACING 1.108 BY 0.144 ;
+END M3_M2widePWR0p936
+
+# to make the wide vias for powers (still SAV)
+
+VIARULE M4_M3widePWR0p864 GENERATE
+  LAYER M3 ;
+    ENCLOSURE 0.0 0.0 ;
+    WIDTH 0.934 TO 0.938 ;
+  LAYER M4 ;
+    ENCLOSURE 0.0 0.0 ;
+    WIDTH 0.862 TO 0.866 ;
+  LAYER V3 ;
+    RECT -0.036 -0.432 0.036 0.432 ;
+    SPACING 0.144 BY 1.108  ;
+END M4_M3widePWR0p864
+
+# to make the wide vias for powers (still SAV)
+
+VIARULE M5_M4widePWR0p864 GENERATE
+  LAYER M4 ;
+    ENCLOSURE 0.0 0.0 ;
+  LAYER M5 ;
+    ENCLOSURE 0.0 0.0 ;
+    WIDTH 0.864 TO 0.864 ;
+  LAYER V4 ;
+    RECT -0.432 -0.048 0.432 0.048 ;
+    SPACING 2.128 BY 0.384 ;
+END M5_M4widePWR0p864
+
+# to make the wide vias for powers (still SAV)
+
+VIARULE M6_M5widePWR1p152 GENERATE
+  LAYER M5 ;
+    ENCLOSURE 0.0 0.0 ;
+  LAYER M6 ;
+    ENCLOSURE 0.0 0.0 ;
+    WIDTH 1.152 TO 1.152 ;
+  LAYER V5 ;
+    RECT -0.048 -0.576 0.048 0.576 ;
+    SPACING 0.384 BY 1.528  ;
+END M6_M5widePWR1p152
+
+# to make the wide vias for powers (still SAV)
+
+VIARULE M7_M6widePWR1p152 GENERATE
+  LAYER M6 ;
+    ENCLOSURE 0.0 0.0 ;
+  LAYER M7 ;
+    ENCLOSURE 0.0 0.0 ;
+    WIDTH 1.152 TO 1.152 ;
+  LAYER V6 ;
+    RECT -0.576 -0.064 0.576 0.064 ;
+    SPACING 2.128 BY 0.384 ;
+END M7_M6widePWR1p152
+
+VIARULE M2_M1 GENERATE DEFAULT
+  LAYER M1 ;
+    ENCLOSURE 0 0.0 ;		
+  LAYER M2 ;
+    ENCLOSURE 0.008 0.0 ;
+  LAYER V1 ;
+    RECT -0.036 -0.036 0.036 0.036 ;
+    SPACING 0.144 BY 0.144 ;
+END M2_M1
+
+
+SITE coreSite
+  CLASS CORE ;
+  SYMMETRY X Y R90 ;
+  SIZE 0.216 BY 1.08 ;
+END coreSite
+
+MACRO AND2x11_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x11_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.240 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 2.412 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 2.412 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.880 0.496 2.952 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.664 0.444 2.736 0.636 ; 
+    END 
+  END A
+END AND2x11_ASAP7_75t_SL
+
+MACRO AND2x13_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x13_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 2.844 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 2.844 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.312 0.496 3.384 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.096 0.444 3.168 0.636 ; 
+    END 
+  END A
+END AND2x13_ASAP7_75t_SL
+
+MACRO AND2x14_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x14_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.888 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 3.060 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 3.060 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.528 0.496 3.600 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.312 0.444 3.384 0.636 ; 
+    END 
+  END A
+END AND2x14_ASAP7_75t_SL
+
+MACRO AND2x3_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x3_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.684 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.496 1.224 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.444 1.008 0.636 ; 
+    END 
+  END A
+END AND2x3_ASAP7_75t_SL
+
+MACRO AND2x4_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x4_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.008 0.180 ; 
+        RECT 0.936 0.180 1.008 0.900 ; 
+        RECT 0.396 0.900 1.008 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.496 1.440 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.444 1.224 0.636 ; 
+    END 
+  END A
+END AND2x4_ASAP7_75t_SL
+
+MACRO AND2x6_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x6_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.440 0.180 ; 
+        RECT 1.368 0.180 1.440 0.900 ; 
+        RECT 0.396 0.900 1.440 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.496 1.872 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.444 1.656 0.636 ; 
+    END 
+  END A
+END AND2x6_ASAP7_75t_SL
+
+MACRO AND2x7_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x7_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.376 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.548 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.548 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.496 2.088 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.444 1.872 0.636 ; 
+    END 
+  END A
+END AND2x7_ASAP7_75t_SL
+
+MACRO AND2x9_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x9_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.980 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.980 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.496 2.520 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.444 2.304 0.636 ; 
+    END 
+  END A
+END AND2x9_ASAP7_75t_SL
+
+MACRO AO221x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO221x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.252 0.396 ; 
+        RECT 0.072 0.396 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B2
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END C
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END A1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END A2
+END AO221x1_ASAP7_75t_SL
+
+MACRO AO222x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO222x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 0.468 0.180 ; 
+        RECT 0.288 0.180 0.360 0.756 ; 
+        RECT 0.360 0.684 0.468 0.756 ; 
+    END 
+  END Y
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END C2
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B2
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A2
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END B1
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END C1
+END AO222x2_ASAP7_75t_SL
+
+MACRO AO332x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO332x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.376 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.252 0.180 ; 
+        RECT 0.072 0.180 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.444 0.792 0.636 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.444 0.576 0.636 ; 
+    END 
+  END A3
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.444 1.008 0.636 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.444 1.224 0.636 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.444 1.440 0.636 ; 
+    END 
+  END B2
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.444 1.656 0.636 ; 
+    END 
+  END B3
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.444 1.872 0.636 ; 
+    END 
+  END C2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.444 2.088 0.636 ; 
+    END 
+  END C1
+END AO332x1_ASAP7_75t_SL
+
+MACRO AOI21x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AOI21x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.324 1.440 0.396 ; 
+        RECT 0.720 0.396 0.792 0.576 ; 
+        RECT 1.368 0.396 1.440 0.576 ; 
+    END 
+  END A2
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END B
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A1
+END AOI21x1_ASAP7_75t_SL
+
+MACRO AOI22x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AOI22x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.180 1.548 0.252 ; 
+        RECT 0.072 0.252 0.144 0.756 ; 
+        RECT 0.144 0.684 0.900 0.756 ; 
+    END 
+  END Y
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.324 1.008 0.396 ; 
+        RECT 0.288 0.396 0.360 0.576 ; 
+        RECT 0.936 0.396 1.008 0.576 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.324 1.872 0.396 ; 
+        RECT 1.152 0.396 1.224 0.576 ; 
+        RECT 1.800 0.396 1.872 0.576 ; 
+    END 
+  END B1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END A2
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.348 0.504 1.460 0.576 ; 
+    END 
+  END B2
+END AOI22x1_ASAP7_75t_SL
+
+MACRO AOI322xp5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AOI322xp5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.944 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END B1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END C1
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END C2
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.252 1.872 0.324 ; 
+        RECT 1.800 0.324 1.872 0.756 ; 
+        RECT 1.476 0.756 1.872 0.828 ; 
+    END 
+  END Y
+END AOI322xp5_ASAP7_75t_SL
+
+MACRO AOI332xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AOI332xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 1.332 0.324 ; 
+        RECT 0.072 0.324 0.144 0.828 ; 
+        RECT 0.144 0.756 0.468 0.828 ; 
+    END 
+  END Y
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END C2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END C1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A1
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END B3
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END A3
+END AOI332xp33_ASAP7_75t_SL
+
+MACRO AOI333xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AOI333xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.376 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 1.548 0.324 ; 
+        RECT 0.072 0.324 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN C3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END C3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A1
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END C1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A3
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B3
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B1
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END C2
+END AOI333xp33_ASAP7_75t_SL
+
+MACRO BUFx11_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx11_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.024 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 2.412 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 2.412 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.664 0.424 2.736 0.656 ; 
+    END 
+  END A
+END BUFx11_ASAP7_75t_SL
+
+MACRO BUFx12_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx12_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.240 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 2.628 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 2.628 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.880 0.424 2.952 0.656 ; 
+    END 
+  END A
+END BUFx12_ASAP7_75t_SL
+
+MACRO BUFx14_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx14_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 3.060 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 3.060 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.312 0.424 3.384 0.656 ; 
+    END 
+  END A
+END BUFx14_ASAP7_75t_SL
+
+MACRO BUFx15_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx15_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.888 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 3.276 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 3.276 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.528 0.424 3.600 0.656 ; 
+    END 
+  END A
+END BUFx15_ASAP7_75t_SL
+
+MACRO BUFx4_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx4_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 0.900 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 0.900 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A
+END BUFx4_ASAP7_75t_SL
+
+MACRO BUFx5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.116 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.116 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A
+END BUFx5_ASAP7_75t_SL
+
+MACRO BUFx8_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx8_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.872 0.180 ; 
+        RECT 1.800 0.180 1.872 0.900 ; 
+        RECT 0.396 0.900 1.872 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.996 0.504 2.108 0.576 ; 
+    END 
+  END A
+END BUFx8_ASAP7_75t_SL
+
+MACRO DFFHQNx1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DFFHQNx1_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.320 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.484 0.360 0.596 ; 
+    END 
+  END CLK
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.484 1.224 0.596 ; 
+    END 
+  END D
+  PIN QN
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.852 0.324 4.248 0.396 ; 
+        RECT 4.176 0.396 4.248 0.684 ; 
+        RECT 3.852 0.684 4.248 0.756 ; 
+    END 
+  END QN
+END DFFHQNx1_ASAP7_75t_SL
+
+MACRO DHLx2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx2_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.456 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.988 0.324 3.168 0.396 ; 
+        RECT 3.096 0.396 3.168 0.684 ; 
+        RECT 2.988 0.684 3.168 0.756 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END DHLx2_ASAP7_75t_SL
+
+MACRO DHLx3_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx3_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.880 0.108 3.492 0.180 ; 
+        RECT 2.880 0.180 2.952 0.972 ; 
+        RECT 2.952 0.900 3.492 0.972 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END DHLx3_ASAP7_75t_SL
+
+MACRO DHLx5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx5_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.104 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.988 0.108 4.032 0.180 ; 
+        RECT 3.960 0.180 4.032 0.900 ; 
+        RECT 2.988 0.900 4.032 0.972 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END DHLx5_ASAP7_75t_SL
+
+MACRO DHLx6_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx6_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.320 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.988 0.108 4.032 0.180 ; 
+        RECT 3.960 0.180 4.032 0.900 ; 
+        RECT 2.988 0.900 4.032 0.972 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END DHLx6_ASAP7_75t_SL
+
+MACRO FAx1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN FAx1_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.024 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN CON
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.160 0.756 0.704 0.828 ; 
+    END 
+  END CON
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.348 0.252 2.324 0.324 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.376 0.612 2.756 0.684 ; 
+    END 
+  END A
+  PIN CI
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.396 2.540 0.468 ; 
+    END 
+  END CI
+  PIN SN
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.888 0.108 2.864 0.180 ; 
+    END 
+  END SN
+END FAx1_ASAP7_75t_SL
+
+MACRO INVx11_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx11_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.736 0.180 ; 
+        RECT 2.664 0.180 2.736 0.900 ; 
+        RECT 0.396 0.900 2.736 0.972 ; 
+    END 
+  END Y
+END INVx11_ASAP7_75t_SL
+
+MACRO INVx12_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx12_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.024 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.736 0.180 ; 
+        RECT 2.664 0.180 2.736 0.900 ; 
+        RECT 0.396 0.900 2.736 0.972 ; 
+    END 
+  END Y
+END INVx12_ASAP7_75t_SL
+
+MACRO INVx14_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx14_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.456 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 3.168 0.180 ; 
+        RECT 3.096 0.180 3.168 0.900 ; 
+        RECT 0.396 0.900 3.168 0.972 ; 
+    END 
+  END Y
+END INVx14_ASAP7_75t_SL
+
+MACRO INVx16_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx16_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.888 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 3.600 0.180 ; 
+        RECT 3.528 0.180 3.600 0.900 ; 
+        RECT 0.396 0.900 3.600 0.972 ; 
+    END 
+  END Y
+END INVx16_ASAP7_75t_SL
+
+MACRO INVx1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx1_ASAP7_75t_SL 0 0 ; 
+  SIZE 0.648 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.252 0.576 0.324 ; 
+        RECT 0.504 0.324 0.576 0.756 ; 
+        RECT 0.396 0.756 0.576 0.828 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A
+END INVx1_ASAP7_75t_SL
+
+MACRO INVx2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx2_ASAP7_75t_SL 0 0 ; 
+  SIZE 0.864 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.324 0.576 0.396 ; 
+        RECT 0.504 0.396 0.576 0.684 ; 
+        RECT 0.396 0.684 0.576 0.756 ; 
+    END 
+  END Y
+END INVx2_ASAP7_75t_SL
+
+MACRO INVx3_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx3_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.080 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.684 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+END INVx3_ASAP7_75t_SL
+
+MACRO INVx5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.116 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.116 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.504 1.008 0.576 ; 
+    END 
+  END A
+END INVx5_ASAP7_75t_SL
+
+MACRO INVx6_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx6_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.504 1.008 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 1.332 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 1.332 0.972 ; 
+    END 
+  END Y
+END INVx6_ASAP7_75t_SL
+
+MACRO 
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN  0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.880 0.108 3.492 0.180 ; 
+        RECT 2.880 0.180 2.952 0.972 ; 
+        RECT 2.952 0.900 3.492 0.972 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END 
+
+MACRO INVx9_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx9_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.376 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.304 0.180 ; 
+        RECT 2.232 0.180 2.304 0.900 ; 
+        RECT 0.396 0.900 2.304 0.972 ; 
+    END 
+  END Y
+END INVx9_ASAP7_75t_SL
+
+MACRO NAND2x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NAND2x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.468 0.396 ; 
+        RECT 0.072 0.396 0.144 0.972 ; 
+        RECT 0.144 0.900 0.900 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END B
+END NAND2x1_ASAP7_75t_SL
+
+MACRO NOR4xp25_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NOR4xp25_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.900 0.180 ; 
+        RECT 0.072 0.180 0.144 0.828 ; 
+        RECT 0.144 0.756 0.252 0.828 ; 
+    END 
+  END Y
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END D
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B
+END NOR4xp25_ASAP7_75t_SL
+
+MACRO NOR5xp2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NOR5xp2_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.116 0.180 ; 
+        RECT 0.072 0.180 0.144 0.828 ; 
+        RECT 0.144 0.756 0.252 0.828 ; 
+    END 
+  END Y
+  PIN E
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END E
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END D
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B
+END NOR5xp2_ASAP7_75t_SL
+
+MACRO OA33x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OA33x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A2
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B3
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END B1
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.324 0.468 0.396 ; 
+        RECT 0.288 0.396 0.360 0.972 ; 
+        RECT 0.360 0.900 0.468 0.972 ; 
+    END 
+  END Y
+END OA33x2_ASAP7_75t_SL
+
+MACRO OAI21xp5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI21xp5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.080 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.684 0.324 ; 
+        RECT 0.072 0.324 0.144 0.828 ; 
+        RECT 0.144 0.756 0.468 0.828 ; 
+    END 
+  END Y
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END B
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+END OAI21xp5_ASAP7_75t_SL
+
+MACRO OAI22xp5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI22xp5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.828 0.252 1.224 0.324 ; 
+        RECT 1.152 0.324 1.224 0.756 ; 
+        RECT 0.612 0.756 1.224 0.828 ; 
+    END 
+  END Y
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B2
+END OAI22xp5_ASAP7_75t_SL
+
+MACRO OAI321xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI321xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.260 0.252 1.656 0.324 ; 
+        RECT 1.584 0.324 1.656 0.900 ; 
+        RECT 0.828 0.900 1.656 0.972 ; 
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A3
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END C
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B2
+END OAI321xp33_ASAP7_75t_SL
+
+MACRO OAI322xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI322xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.944 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.468 0.324 ; 
+        RECT 0.072 0.324 0.144 0.828 ; 
+        RECT 0.144 0.756 1.332 0.828 ; 
+    END 
+  END Y
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END C2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END C1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B2
+END OAI322xp33_ASAP7_75t_SL
+
+MACRO OAI32xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI32xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.044 0.252 1.440 0.324 ; 
+        RECT 1.368 0.324 1.440 0.756 ; 
+        RECT 0.828 0.756 1.440 0.828 ; 
+    END 
+  END Y
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B2
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+END OAI32xp33_ASAP7_75t_SL
+
+MACRO OAI331xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI331xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.944 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.252 0.324 ; 
+        RECT 0.072 0.324 0.144 0.828 ; 
+        RECT 0.144 0.756 1.116 0.828 ; 
+    END 
+  END Y
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B3
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END C1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END A3
+END OAI331xp33_ASAP7_75t_SL
+
+MACRO OAI333xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI333xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.376 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.684 0.180 ; 
+        RECT 0.072 0.180 0.144 0.828 ; 
+        RECT 0.144 0.756 1.548 0.828 ; 
+    END 
+  END Y
+  PIN C3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END C3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A1
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END C1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A3
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B3
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B1
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END C2
+END OAI333xp33_ASAP7_75t_SL
+
+MACRO OR2x10_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x10_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.024 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.304 0.180 ; 
+        RECT 2.232 0.180 2.304 0.900 ; 
+        RECT 0.396 0.900 2.304 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.664 0.424 2.736 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.424 2.520 0.656 ; 
+    END 
+  END A
+END OR2x10_ASAP7_75t_SL
+
+MACRO OR2x11_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x11_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.240 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 2.412 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 2.412 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.880 0.424 2.952 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.664 0.424 2.736 0.656 ; 
+    END 
+  END A
+END OR2x11_ASAP7_75t_SL
+
+MACRO OR2x12_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x12_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.456 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.736 0.180 ; 
+        RECT 2.664 0.180 2.736 0.900 ; 
+        RECT 0.396 0.900 2.736 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.096 0.424 3.168 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.880 0.424 2.952 0.656 ; 
+    END 
+  END A
+END OR2x12_ASAP7_75t_SL
+
+MACRO OR2x13_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x13_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 2.844 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 2.844 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.312 0.424 3.384 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.096 0.424 3.168 0.656 ; 
+    END 
+  END A
+END OR2x13_ASAP7_75t_SL
+
+MACRO OR2x15_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x15_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.104 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 3.276 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 3.276 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.744 0.424 3.816 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.528 0.424 3.600 0.656 ; 
+    END 
+  END A
+END OR2x15_ASAP7_75t_SL
+
+MACRO OR2x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 0.468 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 0.468 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A
+END OR2x2_ASAP7_75t_SL
+
+MACRO OR2x3_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x3_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.684 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A
+END OR2x3_ASAP7_75t_SL
+
+MACRO OR4x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR4x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.252 0.324 ; 
+        RECT 0.072 0.324 0.144 0.972 ; 
+        RECT 0.144 0.900 0.252 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END D
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+END OR4x1_ASAP7_75t_SL
+
+MACRO XNOR2x10_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x10_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.536 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 2.412 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 3.060 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.724 0.504 3.836 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 2.644 0.504 2.756 0.576 ; 
+    END 
+  END B
+END XNOR2x10_ASAP7_75t_SL
+
+MACRO XNOR2x11_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x11_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.320 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.292 0.504 4.048 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.476 0.252 3.816 0.324 ; 
+        RECT 3.744 0.324 3.816 0.900 ; 
+        RECT 0.828 0.900 3.816 0.972 ; 
+    END 
+  END Y
+END XNOR2x11_ASAP7_75t_SL
+
+MACRO XNOR2x12_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x12_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.968 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 2.844 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 3.492 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 4.156 0.504 4.268 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.076 0.504 3.188 0.576 ; 
+    END 
+  END B
+END XNOR2x12_ASAP7_75t_SL
+
+MACRO XNOR2x14_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x14_ASAP7_75t_SL 0 0 ; 
+  SIZE 5.400 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 3.276 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 3.924 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 4.588 0.504 4.700 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.508 0.504 3.620 0.576 ; 
+    END 
+  END B
+END XNOR2x14_ASAP7_75t_SL
+
+MACRO XNOR2x16_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x16_ASAP7_75t_SL 0 0 ; 
+  SIZE 5.832 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 3.708 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 4.356 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 5.020 0.504 5.132 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.940 0.504 4.048 0.576 ; 
+    END 
+  END B
+END XNOR2x16_ASAP7_75t_SL
+
+MACRO XNOR2x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.504 1.892 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.324 1.548 0.396 ; 
+        RECT 1.368 0.396 1.440 0.900 ; 
+        RECT 0.828 0.900 1.548 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+END XNOR2x1_ASAP7_75t_SL
+
+MACRO XNOR2x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 0.684 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 1.332 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.996 0.504 2.108 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END B
+END XNOR2x2_ASAP7_75t_SL
+
+MACRO XNOR2x4_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x4_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.240 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 1.116 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 1.764 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 2.428 0.504 2.540 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.348 0.504 1.460 0.576 ; 
+    END 
+  END B
+END XNOR2x4_ASAP7_75t_SL
+
+MACRO XNOR2x5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x5_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.024 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.468 1.676 0.540 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XNOR2x5_ASAP7_75t_SL
+
+MACRO XNOR2x7_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x7_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.456 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.540 2.864 0.612 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 2.860 0.828 2.972 0.900 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+END XNOR2x7_ASAP7_75t_SL
+
+MACRO XNOR2x9_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x9_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.888 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 2.860 0.396 3.620 0.468 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.476 0.252 3.384 0.324 ; 
+        RECT 3.312 0.324 3.384 0.900 ; 
+        RECT 0.828 0.900 3.384 0.972 ; 
+    END 
+  END Y
+END XNOR2x9_ASAP7_75t_SL
+
+MACRO XOR2x10_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x10_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.536 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.612 0.108 4.464 0.180 ; 
+        RECT 4.392 0.180 4.464 0.900 ; 
+        RECT 2.124 0.900 4.464 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x10_ASAP7_75t_SL
+
+MACRO XOR2x11_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x11_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.320 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.504 4.048 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XOR2x11_ASAP7_75t_SL
+
+MACRO XOR2x16_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x16_ASAP7_75t_SL 0 0 ; 
+  SIZE 5.832 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.612 0.108 5.760 0.180 ; 
+        RECT 5.688 0.180 5.760 0.900 ; 
+        RECT 2.124 0.900 5.760 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x16_ASAP7_75t_SL
+
+MACRO XOR2x3_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x3_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.504 2.324 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XOR2x3_ASAP7_75t_SL
+
+MACRO XOR2x4_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x4_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.240 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.612 0.108 3.168 0.180 ; 
+        RECT 3.096 0.180 3.168 0.900 ; 
+        RECT 2.124 0.900 3.168 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x4_ASAP7_75t_SL
+
+MACRO XOR2x7_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x7_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.456 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.504 3.188 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XOR2x7_ASAP7_75t_SL
+
+MACRO XOR2x8_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x8_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.104 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.612 0.108 4.032 0.180 ; 
+        RECT 3.960 0.180 4.032 0.900 ; 
+        RECT 2.124 0.900 4.032 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x8_ASAP7_75t_SL
+
+MACRO XOR2x9_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x9_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.888 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.504 3.620 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XOR2x9_ASAP7_75t_SL
+
+MACRO INVx13_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx13_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.240 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 3.168 0.180 ; 
+        RECT 3.096 0.180 3.168 0.900 ; 
+        RECT 0.396 0.900 3.168 0.972 ; 
+    END 
+  END Y
+END INVx13_ASAP7_75t_SL
+
+MACRO BUFx9_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx9_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.980 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.980 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END A
+END BUFx9_ASAP7_75t_SL
+
+MACRO AND4x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND4x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.252 0.396 ; 
+        RECT 0.072 0.396 0.144 0.972 ; 
+        RECT 0.144 0.900 0.252 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END D
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+END AND4x1_ASAP7_75t_SL
+
+MACRO OAI311xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI311xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.252 0.324 ; 
+        RECT 0.072 0.324 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A2
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B1
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END C1
+END OAI311xp33_ASAP7_75t_SL
+
+MACRO OA222x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OA222x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.324 0.468 0.396 ; 
+        RECT 0.288 0.396 0.360 0.972 ; 
+        RECT 0.360 0.900 0.468 0.972 ; 
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END A2
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B2
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END C1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END B1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END A1
+END OA222x2_ASAP7_75t_SL
+
+MACRO AND2x8_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x8_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.872 0.180 ; 
+        RECT 1.800 0.180 1.872 0.900 ; 
+        RECT 0.396 0.900 1.872 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.496 2.304 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.444 2.088 0.636 ; 
+    END 
+  END A
+END AND2x8_ASAP7_75t_SL
+
+MACRO OA21x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OA21x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 0.468 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 0.468 0.972 ; 
+    END 
+  END Y
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A2
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END B
+END OA21x2_ASAP7_75t_SL
+
+MACRO INVx15_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx15_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 3.600 0.180 ; 
+        RECT 3.528 0.180 3.600 0.900 ; 
+        RECT 0.396 0.900 3.600 0.972 ; 
+    END 
+  END Y
+END INVx15_ASAP7_75t_SL
+
+MACRO AND2x10_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x10_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.024 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.304 0.180 ; 
+        RECT 2.232 0.180 2.304 0.900 ; 
+        RECT 0.396 0.900 2.304 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.664 0.496 2.736 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.444 2.520 0.636 ; 
+    END 
+  END A
+END AND2x10_ASAP7_75t_SL
+
+MACRO AND2x16_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x16_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.320 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 3.492 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 3.492 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.960 0.496 4.032 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.744 0.444 3.816 0.636 ; 
+    END 
+  END A
+END AND2x16_ASAP7_75t_SL
+
+MACRO BUFx13_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx13_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.456 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 2.844 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 2.844 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.096 0.424 3.168 0.656 ; 
+    END 
+  END A
+END BUFx13_ASAP7_75t_SL
+
+MACRO DHLx8_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx8_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.752 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.988 0.108 4.464 0.180 ; 
+        RECT 4.392 0.180 4.464 0.900 ; 
+        RECT 2.988 0.900 4.464 0.972 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END DHLx8_ASAP7_75t_SL
+
+MACRO NAND5xp2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NAND5xp2_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.252 0.324 ; 
+        RECT 0.072 0.324 0.144 0.972 ; 
+        RECT 0.144 0.900 1.116 0.972 ; 
+    END 
+  END Y
+  PIN E
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END E
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END D
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A
+END NAND5xp2_ASAP7_75t_SL
+
+MACRO AO333x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO333x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.252 0.180 ; 
+        RECT 0.072 0.180 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END C1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A3
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A1
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B3
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B1
+  PIN C3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END C3
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END C2
+END AO333x1_ASAP7_75t_SL
+
+MACRO OR2x16_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x16_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.320 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 3.600 0.180 ; 
+        RECT 3.528 0.180 3.600 0.900 ; 
+        RECT 0.396 0.900 3.600 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.960 0.424 4.032 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.744 0.424 3.816 0.656 ; 
+    END 
+  END A
+END OR2x16_ASAP7_75t_SL
+
+MACRO OA22x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OA22x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.324 0.468 0.396 ; 
+        RECT 0.288 0.396 0.360 0.756 ; 
+        RECT 0.360 0.684 0.468 0.756 ; 
+    END 
+  END Y
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END B1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B2
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A2
+END OA22x2_ASAP7_75t_SL
+
+MACRO NAND4xp25_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NAND4xp25_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.044 0.252 1.224 0.324 ; 
+        RECT 1.152 0.324 1.224 0.900 ; 
+        RECT 0.396 0.900 1.224 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END B
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END D
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END C
+END NAND4xp25_ASAP7_75t_SL
+
+MACRO INVx4_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx4_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.504 1.008 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 0.900 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 0.900 0.972 ; 
+    END 
+  END Y
+END INVx4_ASAP7_75t_SL
+
+MACRO DHLx4_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx4_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.888 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.988 0.108 3.600 0.180 ; 
+        RECT 3.528 0.180 3.600 0.900 ; 
+        RECT 2.988 0.900 3.600 0.972 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END DHLx4_ASAP7_75t_SL
+
+MACRO AND3x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND3x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.252 0.180 ; 
+        RECT 0.072 0.180 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END C
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END B
+END AND3x1_ASAP7_75t_SL
+
+MACRO AND2x12_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x12_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.456 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.736 0.180 ; 
+        RECT 2.664 0.180 2.736 0.900 ; 
+        RECT 0.396 0.900 2.736 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.096 0.496 3.168 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.880 0.444 2.952 0.636 ; 
+    END 
+  END A
+END AND2x12_ASAP7_75t_SL
+
+MACRO AO32x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO32x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.252 0.180 ; 
+        RECT 0.072 0.180 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.464 1.440 0.616 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.464 1.224 0.616 ; 
+    END 
+  END B1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.464 1.008 0.616 ; 
+    END 
+  END A1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.464 0.576 0.616 ; 
+    END 
+  END A3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.464 0.792 0.616 ; 
+    END 
+  END A2
+END AO32x1_ASAP7_75t_SL
+
+MACRO AO322x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO322x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.260 0.324 1.440 0.396 ; 
+        RECT 1.368 0.396 1.440 0.684 ; 
+        RECT 1.260 0.684 1.440 0.756 ; 
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END A2
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.424 2.520 0.656 ; 
+    END 
+  END B2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END A3
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END C2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END C1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END B1
+END AO322x2_ASAP7_75t_SL
+
+MACRO INVx8_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx8_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.504 1.656 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 1.764 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 1.764 0.972 ; 
+    END 
+  END Y
+END INVx8_ASAP7_75t_SL
+
+MACRO OAI332xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI332xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.692 0.252 2.088 0.324 ; 
+        RECT 2.016 0.324 2.088 0.756 ; 
+        RECT 0.828 0.756 2.088 0.828 ; 
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A3
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B2
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B3
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END C2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END C1
+END OAI332xp33_ASAP7_75t_SL
+
+MACRO NOR2xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NOR2xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 0.864 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.252 0.792 0.324 ; 
+        RECT 0.720 0.324 0.792 0.756 ; 
+        RECT 0.612 0.756 0.792 0.828 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B
+END NOR2xp33_ASAP7_75t_SL
+
+MACRO AO22x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO22x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.944 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.252 0.396 ; 
+        RECT 0.072 0.396 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END A1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A2
+END AO22x1_ASAP7_75t_SL
+
+MACRO DHLx1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.324 0.252 0.756 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.424 2.520 0.656 ; 
+    END 
+  END CLK
+END DHLx1_ASAP7_75t_SL
+
+MACRO AND2x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 0.468 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 0.468 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A
+END AND2x2_ASAP7_75t_SL
+
+MACRO NAND3xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NAND3xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.080 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.252 0.324 ; 
+        RECT 0.072 0.324 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B
+END NAND3xp33_ASAP7_75t_SL
+
+MACRO OR2x4_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x4_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.008 0.180 ; 
+        RECT 0.936 0.180 1.008 0.900 ; 
+        RECT 0.396 0.900 1.008 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A
+END OR2x4_ASAP7_75t_SL
+
+MACRO BUFx10_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx10_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 2.196 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 2.196 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.424 2.520 0.656 ; 
+    END 
+  END A
+END BUFx10_ASAP7_75t_SL
+
+MACRO BUFx2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx2_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.080 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.324 0.468 0.396 ; 
+        RECT 0.288 0.396 0.360 0.972 ; 
+        RECT 0.360 0.900 0.468 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A
+END BUFx2_ASAP7_75t_SL
+
+MACRO AOI321xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AOI321xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A3
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END C
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B2
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.828 0.108 1.656 0.180 ; 
+        RECT 1.584 0.180 1.656 0.756 ; 
+        RECT 1.260 0.756 1.656 0.828 ; 
+    END 
+  END Y
+END AOI321xp33_ASAP7_75t_SL
+
+MACRO AND5x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND5x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.252 0.396 ; 
+        RECT 0.072 0.396 0.144 0.972 ; 
+        RECT 0.144 0.900 0.252 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END C
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END D
+  PIN E
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END E
+END AND5x1_ASAP7_75t_SL
+
+MACRO OAI222xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI222xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.692 0.252 2.088 0.324 ; 
+        RECT 2.016 0.324 2.088 0.756 ; 
+        RECT 0.612 0.756 2.088 0.828 ; 
+    END 
+  END Y
+  PIN C2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END C2
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END A2
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B2
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END C1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B1
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END A1
+END OAI222xp33_ASAP7_75t_SL
+
+MACRO OR2x14_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x14_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.888 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 3.168 0.180 ; 
+        RECT 3.096 0.180 3.168 0.900 ; 
+        RECT 0.396 0.900 3.168 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.528 0.424 3.600 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.312 0.424 3.384 0.656 ; 
+    END 
+  END A
+END OR2x14_ASAP7_75t_SL
+
+MACRO OR2x5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.944 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.116 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.116 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A
+END OR2x5_ASAP7_75t_SL
+
+MACRO OAI211xp5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI211xp5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.252 0.900 0.324 ; 
+        RECT 0.072 0.324 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A2
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END C
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B
+END OAI211xp5_ASAP7_75t_SL
+
+MACRO AO21x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO21x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.252 0.180 ; 
+        RECT 0.072 0.180 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A1
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END B
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A2
+END AO21x1_ASAP7_75t_SL
+
+MACRO DFFLQNx1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DFFLQNx1_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.320 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.484 0.360 0.596 ; 
+    END 
+  END CLK
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.484 1.224 0.596 ; 
+    END 
+  END D
+  PIN QN
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.852 0.324 4.248 0.396 ; 
+        RECT 4.176 0.396 4.248 0.684 ; 
+        RECT 3.852 0.684 4.248 0.756 ; 
+    END 
+  END QN
+END DFFLQNx1_ASAP7_75t_SL
+
+MACRO NOR2x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN NOR2x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 0.900 0.180 ; 
+        RECT 0.504 0.180 0.576 0.684 ; 
+        RECT 0.396 0.684 0.576 0.756 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END A
+END NOR2x1_ASAP7_75t_SL
+
+MACRO AND2x5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.944 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.116 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.116 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.496 1.656 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.444 1.440 0.636 ; 
+    END 
+  END A
+END AND2x5_ASAP7_75t_SL
+
+MACRO BUFx16_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx16_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.104 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 3.492 0.180 ; 
+        RECT 0.288 0.180 0.360 0.972 ; 
+        RECT 0.360 0.900 3.492 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.744 0.424 3.816 0.656 ; 
+    END 
+  END A
+END BUFx16_ASAP7_75t_SL
+
+MACRO INVx10_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx10_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 2.304 0.180 ; 
+        RECT 2.232 0.180 2.304 0.900 ; 
+        RECT 0.396 0.900 2.304 0.972 ; 
+    END 
+  END Y
+END INVx10_ASAP7_75t_SL
+
+MACRO OA331x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OA331x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.252 0.396 ; 
+        RECT 0.072 0.396 0.144 0.972 ; 
+        RECT 0.144 0.900 0.252 0.972 ; 
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A3
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B2
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B3
+  PIN C1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END C1
+END OA331x1_ASAP7_75t_SL
+
+MACRO AO331x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AO331x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A2
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A3
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A1
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B1
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END B2
+  PIN B3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END B3
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END C
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.252 0.180 ; 
+        RECT 0.072 0.180 0.144 0.756 ; 
+        RECT 0.144 0.684 0.252 0.756 ; 
+    END 
+  END Y
+END AO331x1_ASAP7_75t_SL
+
+MACRO OR2x6_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x6_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.440 0.180 ; 
+        RECT 1.368 0.180 1.440 0.900 ; 
+        RECT 0.396 0.900 1.440 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.424 1.656 0.656 ; 
+    END 
+  END A
+END OR2x6_ASAP7_75t_SL
+
+MACRO OAI221xp5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OAI221xp5_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.512 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.044 0.252 1.440 0.324 ; 
+        RECT 1.368 0.324 1.440 0.900 ; 
+        RECT 0.180 0.900 1.440 0.972 ; 
+    END 
+  END Y
+  PIN B2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B2
+  PIN B1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B1
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A1
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+END OAI221xp5_ASAP7_75t_SL
+
+MACRO OA211x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OA211x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.108 0.468 0.180 ; 
+        RECT 0.288 0.180 0.360 0.756 ; 
+        RECT 0.360 0.684 0.468 0.756 ; 
+    END 
+  END Y
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A2
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END A1
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END C
+END OA211x2_ASAP7_75t_SL
+
+MACRO INVx7_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN INVx7_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.944 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.380 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.872 0.180 ; 
+        RECT 1.800 0.180 1.872 0.900 ; 
+        RECT 0.396 0.900 1.872 0.972 ; 
+    END 
+  END Y
+END INVx7_ASAP7_75t_SL
+
+MACRO AND2x15_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AND2x15_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.104 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 3.276 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 3.276 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.744 0.496 3.816 0.688 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.528 0.444 3.600 0.636 ; 
+    END 
+  END A
+END AND2x15_ASAP7_75t_SL
+
+MACRO DHLx7_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DHLx7_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.536 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.988 0.108 4.464 0.180 ; 
+        RECT 4.392 0.180 4.464 0.900 ; 
+        RECT 2.988 0.900 4.464 0.972 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END CLK
+END DHLx7_ASAP7_75t_SL
+
+MACRO AOI31xp33_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN AOI31xp33_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.828 0.252 1.224 0.324 ; 
+        RECT 1.152 0.324 1.224 0.756 ; 
+        RECT 1.044 0.756 1.224 0.828 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END B
+  PIN A1
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END A1
+  PIN A3
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.424 0.360 0.656 ; 
+    END 
+  END A3
+  PIN A2
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END A2
+END AOI31xp33_ASAP7_75t_SL
+
+MACRO DLLx1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN DLLx1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Q
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.324 0.252 0.756 ; 
+    END 
+  END Q
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.424 2.520 0.656 ; 
+    END 
+  END CLK
+END DLLx1_ASAP7_75t_SL
+
+MACRO BUFx3_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx3_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 0.684 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A
+END BUFx3_ASAP7_75t_SL
+
+MACRO BUFx7_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN BUFx7_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.440 0.180 ; 
+        RECT 1.368 0.180 1.440 0.900 ; 
+        RECT 0.396 0.900 1.440 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.564 0.504 1.676 0.576 ; 
+    END 
+  END A
+END BUFx7_ASAP7_75t_SL
+
+MACRO OR2x7_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x7_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.376 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.548 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.548 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.800 0.424 1.872 0.656 ; 
+    END 
+  END A
+END OR2x7_ASAP7_75t_SL
+
+MACRO OR2x8_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x8_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.396 0.108 1.872 0.180 ; 
+        RECT 1.800 0.180 1.872 0.900 ; 
+        RECT 0.396 0.900 1.872 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.016 0.424 2.088 0.656 ; 
+    END 
+  END A
+END OR2x8_ASAP7_75t_SL
+
+MACRO OR2x9_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR2x9_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.808 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.108 1.980 0.180 ; 
+        RECT 0.072 0.180 0.144 0.972 ; 
+        RECT 0.144 0.900 1.980 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.448 0.424 2.520 0.656 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 2.232 0.424 2.304 0.656 ; 
+    END 
+  END A
+END OR2x9_ASAP7_75t_SL
+
+MACRO OR3x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR3x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.296 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.252 0.396 ; 
+        RECT 0.072 0.396 0.144 0.972 ; 
+        RECT 0.144 0.900 0.252 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END A
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END C
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END B
+END OR3x1_ASAP7_75t_SL
+
+MACRO OR5x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN OR5x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 1.728 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.072 0.324 0.252 0.396 ; 
+        RECT 0.072 0.396 0.144 0.972 ; 
+        RECT 0.144 0.900 0.252 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.368 0.424 1.440 0.656 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.152 0.424 1.224 0.656 ; 
+    END 
+  END B
+  PIN C
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.936 0.424 1.008 0.656 ; 
+    END 
+  END C
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.424 0.792 0.656 ; 
+    END 
+  END D
+  PIN E
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.424 0.576 0.656 ; 
+    END 
+  END E
+END OR5x1_ASAP7_75t_SL
+
+MACRO SDFHx1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN SDFHx1_ASAP7_75t_SL 0 0 ; 
+  SIZE 5.616 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN SE
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.720 0.504 1.440 0.576 ; 
+    END 
+  END SE
+  PIN D
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.484 0.360 0.596 ; 
+    END 
+  END D
+  PIN CLK
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 3.312 0.484 3.384 0.596 ; 
+    END 
+  END CLK
+  PIN SI
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.584 0.484 1.656 0.596 ; 
+    END 
+  END SI
+  PIN QN
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 5.148 0.324 5.544 0.396 ; 
+        RECT 5.472 0.396 5.544 0.684 ; 
+        RECT 5.148 0.684 5.544 0.756 ; 
+    END 
+  END QN
+END SDFHx1_ASAP7_75t_SL
+
+MACRO XNOR2x13_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x13_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.752 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.724 0.504 4.484 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.476 0.252 4.248 0.324 ; 
+        RECT 4.176 0.324 4.248 0.900 ; 
+        RECT 0.828 0.900 4.248 0.972 ; 
+    END 
+  END Y
+END XNOR2x13_ASAP7_75t_SL
+
+MACRO XNOR2x15_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x15_ASAP7_75t_SL 0 0 ; 
+  SIZE 5.184 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 4.156 0.504 4.916 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.476 0.252 4.680 0.324 ; 
+        RECT 4.608 0.324 4.680 0.900 ; 
+        RECT 0.828 0.900 4.680 0.972 ; 
+    END 
+  END Y
+END XNOR2x15_ASAP7_75t_SL
+
+MACRO XNOR2x3_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x3_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.592 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.564 0.504 2.324 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 1.476 0.252 2.088 0.324 ; 
+        RECT 2.016 0.324 2.088 0.900 ; 
+        RECT 0.828 0.900 2.088 0.972 ; 
+    END 
+  END Y
+END XNOR2x3_ASAP7_75t_SL
+
+MACRO XNOR2x6_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x6_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 1.548 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 2.196 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 2.860 0.504 2.972 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.780 0.504 1.892 0.576 ; 
+    END 
+  END B
+END XNOR2x6_ASAP7_75t_SL
+
+MACRO XNOR2x8_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XNOR2x8_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.104 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.180 0.108 1.980 0.180 ; 
+        RECT 0.180 0.180 0.252 0.972 ; 
+        RECT 0.252 0.900 2.628 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.292 0.504 3.404 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 2.212 0.504 2.324 0.576 ; 
+    END 
+  END B
+END XNOR2x8_ASAP7_75t_SL
+
+MACRO XOR2x12_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x12_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.968 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.612 0.108 4.896 0.180 ; 
+        RECT 4.824 0.180 4.896 0.900 ; 
+        RECT 2.124 0.900 4.896 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x12_ASAP7_75t_SL
+
+MACRO XOR2x13_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x13_ASAP7_75t_SL 0 0 ; 
+  SIZE 4.752 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 3.940 0.504 4.484 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XOR2x13_ASAP7_75t_SL
+
+MACRO XOR2x14_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x14_ASAP7_75t_SL 0 0 ; 
+  SIZE 5.400 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.612 0.108 5.328 0.180 ; 
+        RECT 5.256 0.180 5.328 0.900 ; 
+        RECT 2.124 0.900 5.328 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x14_ASAP7_75t_SL
+
+MACRO XOR2x15_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x15_ASAP7_75t_SL 0 0 ; 
+  SIZE 5.184 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 4.372 0.504 4.916 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XOR2x15_ASAP7_75t_SL
+
+MACRO XOR2x1_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x1_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.160 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.504 1.892 0.576 ; 
+    END 
+  END A
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.828 0.108 1.548 0.180 ; 
+        RECT 1.368 0.180 1.440 0.756 ; 
+        RECT 1.440 0.684 1.548 0.756 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.288 0.324 0.792 0.396 ; 
+        RECT 0.288 0.396 0.360 0.576 ; 
+        RECT 0.720 0.396 0.792 0.576 ; 
+    END 
+  END B
+END XOR2x1_ASAP7_75t_SL
+
+MACRO XOR2x2_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x2_ASAP7_75t_SL 0 0 ; 
+  SIZE 2.376 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.240 0.504 2.108 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.504 0.324 0.684 0.396 ; 
+        RECT 0.504 0.396 0.576 0.972 ; 
+        RECT 0.576 0.900 0.684 0.972 ; 
+    END 
+  END Y
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.268 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x2_ASAP7_75t_SL
+
+MACRO XOR2x5_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x5_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.024 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 1.132 0.504 2.756 0.576 ; 
+    END 
+  END A
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.700 0.504 0.812 0.576 ; 
+    END 
+  END B
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M0 ;  
+    END 
+  END Y
+END XOR2x5_ASAP7_75t_SL
+
+MACRO XOR2x6_ASAP7_75t_SL
+  CLASS CORE ; 
+  ORIGIN 0 0 ; 
+  FOREIGN XOR2x6_ASAP7_75t_SL 0 0 ; 
+  SIZE 3.672 BY 1.08 ; 
+  SYMMETRY X Y ; 
+  PIN Y
+    DIRECTION OUTPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M1 ;  
+        RECT 0.612 0.108 3.600 0.180 ; 
+        RECT 3.528 0.180 3.600 0.900 ; 
+        RECT 2.124 0.900 3.600 0.972 ; 
+    END 
+  END Y
+  PIN B
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.484 0.504 0.596 0.576 ; 
+    END 
+  END B
+  PIN A
+    DIRECTION INPUT ; 
+    USE SIGNAL ; 
+    PORT 
+      LAYER M2 ;  
+        RECT 0.916 0.504 1.028 0.576 ; 
+    END 
+  END A
+END XOR2x6_ASAP7_75t_SL
+
+
+END LIBRARY

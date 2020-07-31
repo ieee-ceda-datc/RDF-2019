@@ -1,0 +1,53 @@
+07-30-2013
+ComPLx v13.07.30 & SimPL v12.12.07 Distribution Notes
+
+The Tarball Contents:
+
+		README
+		ComPLx.exe              : A global placer     (M.-C. Kim, I. L. Markov, ComPLx: A competitive primal-dual largrange optimization for global placement, DAC 2012)
+		FastPlace3.0_Linux64_DP : A detailed placer   (M. Pan, N. Viswanathan, C. C. N. Chu: An efficient and effective detailed placement algorithm. ICCAD 2005
+		PlaceUtil-Lnx64.exe     : A placement utility (http://vlsicad.eecs.umich.edu/BK/PlaceUtils/)
+
+
+Example Usage:
+	
+		ComPLx.exe -f bigblue4/bigblue4.aux [-ut ###] [-fast] [-gnuplt]
+
+    -f            : Takes a bookshelf format (ISPD05, ISPD06) benchmark in *.aux
+		-ut           : Target utilization (float, default=1.0)
+		-fast         : This wll compress matrices and apply an accelerated SimPL-like convergence scheduling (default is off).
+		                *** Comparable quality and runtimes with SimPL (default is off) - SimPL v12.12.07 ***.
+								    Please refer to M.-C. Kim, D. J. Lee, I. L. Markov, "SimPL: an effective placement algorithm," TCAD 2012
+		-gnuplt       : This will generate a gnuplot of the resulting placement. <benchmark>-f0.plt (default is off)
+		-nomacroshred : The macro-shredding technique will be suppressed (default is off).
+    -postLAL      : This will generate <benchmark>-LAL.pl at every iteration after LAL. 
+		                Then it will launch a user-defined binary './postLAL' and read <benchmark>-postLAL.pl
+										You can use this to modify the current feasibility projection based on your objectives. 
+										Please refer the DAC'13 ComPLx paper for details (default is off).
+
+
+Example Outputs:
+
+		bigblue4-ComPLx.pl
+		bigblue4-f0.plt (w/ the -gnuplt option)
+
+
+Example Usage of FastPlace-DP (to replicate the DAC'13 results):
+
+		FastPlace3.0_Linux64_DP -legalize -window 10 -target_density 0.99 ../bigblue4 bigblue4.aux . bigblue4-ComPLx.pl	
+
+		if small overlaps remain after FastPlace-DP: 
+				PlaceUtil-Lnx64.exe -f bigblue4_dp.aux -legal
+		And the content of "bigblue4_dp.aux" should be :
+				RowBasedPlacement :  bigblue4.nodes  bigblue4.nets  bigblue4.wts  bigblue4_FP_dp.pl  bigblue4.scl
+
+
+Disclaimer:
+
+		Please note that ComPLx only generates a global placement solution, on which it requires to run a detailed placer for legalization and further wirelength improvement. 
+		Please do not publish its results on the MMS benchmarks / ISPD04 mixed-sized benchmarks yet as we are working on a journal paper.
+    This placer is not tuned to specific benchmarks, and we expect the same from other placers when empirical comparisons are made.
+
+
+Any inquiries / bug reports should be sent to:
+		Myung-Chul Kim (mckima@umich.edu)

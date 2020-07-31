@@ -1,0 +1,3 @@
+[submodule "src/util/lefdef_util"]
+	path = src/util/lefdef_util
+	url = https://github.com/jinwookjungs/lefdef_util

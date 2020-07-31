@@ -1,0 +1,150 @@
+# global parameters
+#set check         # checks intermediate networks
+#set checkfio      # prints warnings when fanins/fanouts are duplicated
+#unset checkread   # does not check new networks after reading from file
+#set backup        # saves backup networks retrived by "undo" and "recall"
+#set savesteps 1   # sets the maximum number of backup networks to save 
+#set progressbar   # display the progress bar
+
+# program names for internal calls
+set dotwin dot.exe
+set dotunix dot
+set gsviewwin gsview32.exe
+set gsviewunix gv
+set siswin sis.exe
+set sisunix sis
+set mvsiswin mvsis.exe
+set mvsisunix mvsis
+set capowin MetaPl-Capo10.1-Win32.exe
+set capounix MetaPl-Capo10.1
+set gnuplotwin wgnuplot.exe
+set gnuplotunix gnuplot
+
+# Niklas Een's commands
+#load_plugin C:\_projects\abc\lib\bip_win.exe "BIP"
+
+# standard aliases
+alias hi history
+alias b balance
+alias cg clockgate
+alias cl cleanup
+alias clp collapse
+alias cs care_set
+alias el eliminate
+alias esd ext_seq_dcs
+alias f fraig
+alias fs fraig_sweep
+alias fsto fraig_store
+alias fres fraig_restore
+alias fr fretime
+alias ft fraig_trust
+alias ic indcut
+alias lp lutpack
+alias pcon print_cone
+alias pd print_dsd
+alias pex print_exdc -d
+alias pf print_factor
+alias pfan print_fanio
+alias pg print_gates
+alias pl print_level
+alias plat print_latch
+alias pio print_io
+alias pk print_kmap
+alias pm print_miter
+alias ps print_stats 
+alias psb print_stats -b
+alias psu print_supp
+alias psy print_symm
+alias pun print_unate
+alias q quit
+alias r read
+alias ra read_aiger
+alias r3 retime -M 3
+alias r3f retime -M 3 -f
+alias r3b retime -M 3 -b
+alias ren renode
+alias rh read_hie
+alias ri read_init
+alias rl read_blif
+alias rb read_bench
+alias ret retime
+alias dret dretime
+alias rp read_pla
+alias rt read_truth
+alias rv read_verilog
+alias rvl read_verlib
+alias rsup read_super mcnc5_old.super
+alias rlib read_library
+alias rlibc read_library cadence.genlib
+alias rty read_liberty
+alias rlut read_lut
+alias rw rewrite
+alias rwz rewrite -z
+alias rf refactor
+alias rfz refactor -z
+alias re restructure
+alias rez restructure -z
+alias rs resub
+alias rsz resub -z
+alias sa set autoexec ps
+alias scl scleanup
+alias sif if -s
+alias so source -x
+alias st strash
+alias sw sweep
+alias ssw ssweep
+alias tr0 trace_start
+alias tr1 trace_check
+alias trt "r c.blif; st; tr0; b; tr1"
+alias u undo
+alias w write
+alias wa write_aiger
+alias wb write_bench
+alias wc write_cnf
+alias wh write_hie
+alias wl write_blif
+alias wp write_pla
+alias wv write_verilog
+
+# standard scripts
+alias resyn       "echo -n *********:; ps; b; rw; rwz; b; rwz; b; echo -n aig:resyn:; ps;"
+alias resyn2      "echo -n **********:; ps; b; rw; rf; b; rw; rwz; b; rfz; rwz; b; echo -n aig:resyn2:; ps;"
+alias resyn2a     "echo -n ***********:; ps; b; rw; b; rw; rwz; b; rwz; b; echo -n aig:resyn2a:; ps;"
+alias resyn3      "echo -n **********:; ps; b; rs; rs -K 6; b; rsz; rsz -K 6; b; rsz -K 5; b; echo -n aig:resyn3:; ps;"
+alias compress    "echo -n ************:; ps; b -l; rw -l; rwz -l; b -l; rwz -l; b -l; echo -n aig:compress:; ps;"
+alias compress2   "echo -n *************:; ps; b -l; rw -l; rf -l; b -l; rw -l; rwz -l; b -l; rfz -l; rwz -l; b -l; echo -n aig:compress2:; ps;"
+alias choice      "echo -n *********:; ps; fraig_store; resyn; fraig_store; resyn2; fraig_store; fraig_restore; echo -n aig:choice:; ps;"
+alias choice2     "echo -n *aig*:; ps; fraig_store; balance; fraig_store; resyn; fraig_store; resyn2; fraig_store; resyn2; fraig_store; fraig_restore; echo -n aig:choice2:; ps;"
+alias rwsat       "st; echo -n ***st:; ps; rw -l; b -l; rw -l; rf -l; echo -n aig:rwsat:; ps;"
+alias drwsat2     "st; echo -n ***st:; ps; drw; b -l; drw; drf; ifraig -C 20; drw; b -l; drw; drf; echo -n aig:drwsat2:; ps;"
+alias share       "st; echo -n ***st:; ps; multi -m; sop; fx; resyn2; echo -n aig:share:; ps;"
+alias addinit     "echo -n *aig*:; ps; read_init; undc; strash; zero; echo -n aig:addinit:; ps;"
+alias blif2aig    "echo -n *aig*:; ps; undc; strash; zero; echo -n aig:blif2aig:; ps;"
+alias v2p         "echo -n *aig*:; ps;  &vta_gla; &ps; &gla_derive; &put; w 1.aig; pdr -v; echo -n aig:v2b:; ps;"
+alias g2p         "echo -n *aig*:; ps; &ps; &gla_derive; &put; w 2.aig; pdr -v; echo -n aig:g2p:; ps;"
+alias &sw_        "echo -n *aig*:; ps; &put; sweep; st; &get; echo -n aig:sw_:; ps;"
+alias &fx_        "echo -n *aig*:; ps; &put; sweep; sop; fx; st; &get; echo -n aig:fx_:; ps;"
+alias &dc3        "echo -n *aig*:; ps; &b; &jf -K 6; &b; &jf -K 4; &b; echo -n aig:dc3:; ps;"
+alias &dc4        "echo -n *aig*:; ps; &b; &jf -K 7; &fx; &b; &jf -K 5; &fx; &b; echo -n aig:dc4:; ps;"
+
+# resubstitution scripts for the IWLS paper
+alias src_rw      "st; echo -n ***st:; ps; rw -l; rwz -l; rwz -l; echo -n aig:**:; ps;" 
+alias src_rs      "st; echo -n ***st:; ps; rs -K 6 -N 2 -l; rs -K 9 -N 2 -l; rs -K 12 -N 2 -l; echo -n aig:**:; ps;" 
+alias src_rws     "st; echo -n ***st:; ps; rw -l; rs -K 6 -N 2 -l; rwz -l; rs -K 9 -N 2 -l; rwz -l; rs -K 12 -N 2 -l; echo -n *aig*:; ps;" 
+alias resyn2rs    "echo -n *aig********:; ps; b; rs -K 6; rw; rs -K 6 -N 2; rf; rs -K 8; b; rs -K 8 -N 2; rw; rs -K 10; rwz; rs -K 10 -N 2; b; rs -K 12; rfz; rs -K 12 -N 2; rwz; b; echo -n aig:resyn2rs:; ps;"
+alias compress2rs "echo -n *aig***********:; ps; b -l; rs -K 6 -l; rw -l; rs -K 6 -N 2 -l; rf -l; rs -K 8 -l; b -l; rs -K 8 -N 2 -l; rw -l; rs -K 10 -l; rwz -l; rs -K 10 -N 2 -l; b -l; rs -K 12 -l; rfz -l; rs -K 12 -N 2 -l; rwz -l; b -l; echo -n aig:compress2rs:; ps;"
+alias lazyman "echo *****LazyMan synthesis; rec_start3 ./lib6_filter.aig; rec_ps3; st;  echo -n ***st:; ps; echo -n rwbrf:; b;  rw; rf; b; rw; rw -z; b; rf -z; rw -z; b; ps; echo -n if -y:; if -y -K 6; st; ps; echo -n rwbrf:; b; rw; rf; b; rw; rw -z; b; rf -z; rw -z; b; st; b; rw; rf; b; rw; rw -z; b; rf -z; rw -z; b; ps; echo -n if -y:; if -y -K 6;st;ps; echo -n rwbrf:; b; rw; rf; b; rw; rw -z; b; rf -z; rw -z; b;ps; echo -n aig:lazyman:;ps;"
+alias lazyman_dch "echo *****LazyMan synthesis with dch; rec_start3 ./lib6_filter.aig; st; echo -n ***st:; ps; echo -n **dc2:; dc2;  ps;  dch;  st; echo -n **dch:; ps;  if -y -K 6; st; echo -n if -y:; ps;  dch;  st; echo -n **dch:; ps; if -y -K 6;  st; echo -n if -y:; ps; echo -n aig:lazyman_dch:;ps;"
+alias timing "echo *****Synthesis with timing; st; echo -n ***st:; ps; echo -n rwbrf:; b;  rw; rf; b; rw; rw -z; b; rf -z; rw -z; b; ps; echo -n if -g:;  if -g -K 6; st; ps; echo -n rwbrf:; b; rw; rf; b; rw; rw -z; b; rf -z; rw -z; b; st;ps; echo -n rwbrf:; b; rw; rf; b; rw; rw -z; b; rf -z; rw -z; b; ps; echo -n if -g:; if -g -K 6; st;ps; echo -n rwbrf:; b; rw; rf; b; rw; rw -z; b; rf -z; rw -z; b;ps; echo -n aig:timing:;ps;"
+
+# use this script to convert 1-valued and DC-valued flops for an AIG
+alias fix_aig     "logic; undc; strash; zero"
+
+# use this script to convert 1-valued and DC-valued flops for a logic network coming from BLIF
+alias fix_blif    "undc; strash; zero"
+
+# lazy man's synthesis
+alias recadd3     "rec_start3 ./lib6_filter.aig; st; echo -n ***st:; rec_add3; b; rec_add3; dc2; rec_add3; if -K 8; bidec; st; rec_add3; dc2; rec_add3; if -g -K 6; st; rec_add3;  echo -n *aig*:; ps;  echo -n aig:recadd3:;ps;"
+
+alias nfmap "strash; &get; &synch2; &nf; &put"
+

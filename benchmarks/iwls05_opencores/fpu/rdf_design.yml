@@ -1,0 +1,10 @@
+name: fpu
+clock_port: clk
+
+verilog:
+    - except.v
+    - fpu.v
+    - post_norm.v
+    - pre_norm.v
+    - pre_norm_fmul.v
+    - primitives.v

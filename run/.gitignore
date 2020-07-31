@@ -1,0 +1,4 @@
+*
+!.gitignore
+!run_test.sh
+!test.yml

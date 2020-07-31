@@ -1,0 +1,17 @@
+name: des3
+clock_port: clk
+
+verilog:
+    - des3.v
+    - des.v
+    - key_sel3.v
+    - key_sel.v
+    - crp.v
+    - sbox1.v
+    - sbox2.v
+    - sbox3.v
+    - sbox4.v
+    - sbox5.v
+    - sbox6.v
+    - sbox7.v
+    - sbox8.v
